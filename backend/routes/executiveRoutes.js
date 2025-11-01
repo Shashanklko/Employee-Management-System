@@ -1,23 +1,20 @@
 import express from "express";
 import {
-  registerExecutive,
-  loginExecutive,
-  registerHR,
-  getAllHRs,
+  getAllExecutives,
+  createExecutive,
+  updateExecutive,
 } from "../controllers/executiveController.js";
-import { verifyToken } from "../middleware/authMiddleware.js";
-import { verifyRole } from "../middleware/roleMiddleware.js";
+import { authenticate } from "../middleware/authMiddleware.js";
+import { requireSystemAdmin } from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-// Only Executives can register HRs
-router.post("/register-hr", verifyToken, verifyRole(["Executive"]), registerHR);
+// All routes require System Admin
+router.use(authenticate);
+router.use(requireSystemAdmin);
 
-// Executives can view all HRs
-router.get("/hrs", verifyToken, verifyRole(["Executive"]), getAllHRs);
-
-// Common routes
-router.post("/register", registerExecutive); // used for initial setup
-router.post("/login", loginExecutive);
+router.get("/", getAllExecutives);
+router.post("/", createExecutive);
+router.put("/:id", updateExecutive);
 
 export default router;
