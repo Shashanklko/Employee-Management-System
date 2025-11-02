@@ -51,8 +51,17 @@ export const sendEmail = async ({ to, subject, html, text }) => {
 
     const transporter = createTransporter();
 
+    // Configure sender email and name
+    // EMAIL_USER is the email address that sends emails
+    // EMAIL_FROM_NAME is optional - display name for the sender
+    const fromEmail = process.env.EMAIL_USER;
+    const fromName = process.env.EMAIL_FROM_NAME || "Employee Management System";
+    const fromAddress = process.env.EMAIL_FROM_NAME 
+      ? `"${fromName}" <${fromEmail}>`
+      : fromEmail;
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: fromAddress, // Sender email (configured in EMAIL_USER)
       to,
       subject,
       html,
@@ -69,23 +78,127 @@ export const sendEmail = async ({ to, subject, html, text }) => {
 };
 
 /**
- * Send welcome email to new employee
+ * Send welcome email to new employee or intern
+ * @param {string} employeeEmail - Employee/Intern email
+ * @param {string} employeeName - Employee/Intern full name
+ * @param {string} password - Temporary password
+ * @param {string} role - Employee role (Employee, Intern, etc.)
+ * @param {string} department - Department name (optional)
  */
-export const sendWelcomeEmail = async (employeeEmail, employeeName, password) => {
+export const sendWelcomeEmail = async (employeeEmail, employeeName, password, role = "Employee", department = null) => {
+  const userType = role === "Intern" ? "Intern" : "Employee";
+  const loginUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  
   const html = `
-    <h2>Welcome to the Employee Management System!</h2>
-    <p>Hello ${employeeName},</p>
-    <p>Your account has been created successfully.</p>
-    <p><strong>Email:</strong> ${employeeEmail}</p>
-    <p><strong>Temporary Password:</strong> ${password}</p>
-    <p>Please change your password after your first login.</p>
-    <p>Best regards,<br>HR Team</p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; }
+        .credentials { background-color: #fff3cd; padding: 15px; margin: 15px 0; border-left: 4px solid #ffc107; }
+        .steps { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #2196F3; }
+        .security { background-color: #f3e5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #9c27b0; }
+        .footer { background-color: #333; color: white; padding: 15px; text-align: center; border-radius: 0 0 5px 5px; font-size: 12px; }
+        .button { display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+        .password { font-size: 18px; font-weight: bold; color: #d32f2f; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🎉 Welcome to Employee Management System!</h1>
+        </div>
+        
+        <div class="content">
+          <h2>Hello ${employeeName}!</h2>
+          ${department ? `<p>We're thrilled to have you on board in the <strong>${department}</strong> department!` : '<p>We\'re thrilled to have you on board!'}
+          Your account has been successfully created as an <strong>${role}</strong>.</p>
+
+          <div class="credentials">
+            <h3>🔐 Your Login Credentials</h3>
+            <p><strong>Email:</strong> ${employeeEmail}</p>
+            <p><strong>Temporary Password:</strong> <span class="password">${password}</span></p>
+            <p><em>Please keep these credentials secure and change your password after your first login.</em></p>
+          </div>
+
+          <div class="steps">
+            <h3>📝 Next Steps - Change Your Password</h3>
+            <ol>
+              <li>Go to the login page: <a href="${loginUrl}">${loginUrl}</a></li>
+              <li>Log in using your email and temporary password above</li>
+              <li>Navigate to your profile settings</li>
+              <li>Click on "Change Password"</li>
+              <li>Enter your current password and choose a new secure password</li>
+              <li>Make sure your new password is at least 6 characters long</li>
+            </ol>
+            <p><a href="${loginUrl}" class="button">Login Now</a></p>
+          </div>
+
+          <div class="security">
+            <h3>🔒 Security Reminder</h3>
+            <ul>
+              <li>Keep your password confidential - never share it with anyone</li>
+              <li>Choose a strong, unique password that you don't use elsewhere</li>
+              <li>Change your password regularly for better security</li>
+              <li>If you suspect your account is compromised, contact HR immediately</li>
+            </ul>
+          </div>
+
+          <p>If you have any questions, please contact the HR team.</p>
+          <p>Best regards,<br>HR Team</p>
+        </div>
+
+        <div class="footer">
+          <p>This is an automated message from Employee Management System</p>
+          <p>Please do not reply to this email</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const textVersion = `
+🎉 Welcome to Employee Management System!
+
+Hello ${employeeName}!
+
+${department ? `We're thrilled to have you on board in the ${department} department!` : "We're thrilled to have you on board!"}
+Your account has been successfully created as an ${role}.
+
+🔐 Your Login Credentials
+Email: ${employeeEmail}
+Temporary Password: ${password}
+
+Please keep these credentials secure and change your password after your first login.
+
+📝 Next Steps - Change Your Password
+1. Go to the login page: ${loginUrl}
+2. Log in using your email and temporary password above
+3. Navigate to your profile settings
+4. Click on "Change Password"
+5. Enter your current password and choose a new secure password
+6. Make sure your new password is at least 6 characters long
+
+🔒 Security Reminder
+- Keep your password confidential
+- Choose a strong, unique password
+- Change your password regularly
+- If you suspect your account is compromised, contact HR immediately
+
+If you have any questions, please contact the HR team.
+
+Best regards,
+HR Team
   `;
 
   return sendEmail({
     to: employeeEmail,
-    subject: "Welcome to Employee Management System",
+    subject: `Welcome ${employeeName}! Your ${role} Account is Ready`,
     html,
+    text: textVersion,
   });
 };
 

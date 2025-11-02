@@ -1,6 +1,5 @@
 import Employee from "../models/Employee.js";
 import { sendPayrollEmail } from "../utils/emailUtils.js";
-import { sendPayrollWhatsApp } from "../utils/whatsappUtils.js";
 
 /**
  * Get all payroll records (HR/Executive/System Admin only)

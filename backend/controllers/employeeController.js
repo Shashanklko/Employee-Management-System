@@ -132,9 +132,9 @@ export const createEmployee = async (req, res) => {
       is_active: true,
     });
 
-    // Send welcome email
+    // Send welcome email with role and department info
     try {
-      await sendWelcomeEmail(email, full_name, password);
+      await sendWelcomeEmail(email, full_name, password, employee.role || "Employee", department);
     } catch (emailError) {
       console.error("Failed to send welcome email:", emailError);
     }

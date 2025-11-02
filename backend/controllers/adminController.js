@@ -4,7 +4,8 @@ import Executive from "../models/Executive.js";
 import Message from "../models/Message.js";
 import Report from "../models/Report.js";
 import bcrypt from "bcrypt";
-import { Op } from "sequelize";
+import { Op, fn, col } from "sequelize";
+import { sendWelcomeEmail } from "../utils/emailUtils.js";
 
 /**
  * ============================================
@@ -19,13 +20,14 @@ export const getSystemDashboard = async (req, res) => {
   try {
     // Employee statistics
     const totalEmployees = await Employee.count();
-    const activeEmployees = await Employee.count({ where: { is_active: true } });
-    const blockedEmployees = await Employee.count({ where: { is_blocked: true } });
+    const activeEmployees = await Employee.count({
+      where: { is_active: true },
+    });
+    const blockedEmployees = await Employee.count({
+      where: { is_blocked: true },
+    });
     const employeesByRole = await Employee.findAll({
-      attributes: [
-        "role",
-        [fn("COUNT", col("id")), "count"],
-      ],
+      attributes: ["role", [fn("COUNT", col("id")), "count"]],
       group: ["role"],
       raw: true,
     });
@@ -36,7 +38,9 @@ export const getSystemDashboard = async (req, res) => {
 
     // Executive statistics
     const totalExecutives = await Executive.count();
-    const activeExecutives = await Executive.count({ where: { is_active: true } });
+    const activeExecutives = await Executive.count({
+      where: { is_active: true },
+    });
 
     // Message statistics
     const totalMessages = await Message.count();
@@ -46,10 +50,7 @@ export const getSystemDashboard = async (req, res) => {
     const totalReports = await Report.count();
     const pendingReports = await Report.count({ where: { status: "Pending" } });
     const reportsByType = await Report.findAll({
-      attributes: [
-        "report_type",
-        [fn("COUNT", col("id")), "count"],
-      ],
+      attributes: ["report_type", [fn("COUNT", col("id")), "count"]],
       group: ["report_type"],
       raw: true,
     });
@@ -455,7 +456,9 @@ export const blockAnyUser = async (req, res) => {
     const { password: _, ...userResponse } = user.toJSON();
 
     res.json({
-      message: `User blocked successfully${blockedUntil ? ` until ${blockedUntil.toISOString()}` : " (permanent)"}`,
+      message: `User blocked successfully${
+        blockedUntil ? ` until ${blockedUntil.toISOString()}` : " (permanent)"
+      }`,
       user: { ...userResponse, user_type },
       blocked_until: blockedUntil,
     });
@@ -539,8 +542,13 @@ export const unblockAnyUser = async (req, res) => {
  */
 export const getAllSystemMessages = async (req, res) => {
   try {
-    const { page = 1, limit = 20, is_read, sender_type, receiver_type } =
-      req.query;
+    const {
+      page = 1,
+      limit = 20,
+      is_read,
+      sender_type,
+      receiver_type,
+    } = req.query;
     const offset = (page - 1) * limit;
 
     const where = {};
@@ -759,13 +767,11 @@ export const getAllPayrollData = async (req, res) => {
       role: employee.role,
       salary: employee.current_salary,
       bonus: employee.bonus || 0,
-      total: parseFloat(employee.current_salary) + parseFloat(employee.bonus || 0),
+      total:
+        parseFloat(employee.current_salary) + parseFloat(employee.bonus || 0),
     }));
 
-    const totalPayroll = payrollData.reduce(
-      (sum, emp) => sum + emp.total,
-      0
-    );
+    const totalPayroll = payrollData.reduce((sum, emp) => sum + emp.total, 0);
 
     res.json({
       payroll: payrollData,
@@ -910,6 +916,19 @@ export const createSystemAdmin = async (req, res) => {
       is_blocked: false,
     });
 
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(
+        email,
+        full_name,
+        password,
+        "System Admin",
+        department
+      );
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+    }
+
     const { password: _, ...adminResponse } = admin.toJSON();
 
     res.status(201).json({
@@ -985,4 +1004,3 @@ export const getSystemConfig = async (req, res) => {
     });
   }
 };
-

@@ -4,7 +4,6 @@ import Executive from "../models/Executive.js";
 import HR from "../models/HR.js";
 import { generateToken } from "../utils/jwtUtils.js";
 import { sendWelcomeEmail, sendEmail } from "../utils/emailUtils.js";
-import { sendWelcomeWhatsApp } from "../utils/whatsappUtils.js";
 import Message from "../models/Message.js";
 
 /**
@@ -88,9 +87,9 @@ export const register = async (req, res) => {
       is_active: true,
     });
 
-    // Send welcome email
+    // Send welcome email with role and department info
     try {
-      await sendWelcomeEmail(email, full_name, password);
+      await sendWelcomeEmail(email, full_name, password, employee.role || "Employee", department);
     } catch (emailError) {
       console.error("Failed to send welcome email:", emailError);
     }
