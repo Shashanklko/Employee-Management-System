@@ -1,0 +1,26 @@
+# Employee Management System - Backend Requirements
+# Node.js Version: 18.x or higher recommended
+# Install dependencies: npm install
+
+# Core Dependencies
+express>=5.1.0
+cors>=2.8.5
+dotenv>=17.2.3
+bcrypt>=6.0.0
+jsonwebtoken>=9.0.2
+
+# Database
+mongoose>=8.19.2
+@supabase/supabase-js>=2.78.0
+pg>=8.16.3
+sequelize>=6.37.7
+
+# Email
+nodemailer>=6.9.8
+
+# Development Dependencies
+nodemon>=3.1.10
+
+# Optional Dependencies (if needed)
+pdfkit>=0.13.0
+

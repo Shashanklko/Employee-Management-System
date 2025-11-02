@@ -1,7 +1,18 @@
 {
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "pg": "^8.16.3",
-    "sequelize": "^6.37.7"
-  }
+  "name": "employee-management-system",
+  "version": "1.0.0",
+  "description": "Employee Management System - Full Stack Application",
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "install-backend": "cd backend && npm install"
+  },
+  "keywords": [
+    "employee-management",
+    "hr-system",
+    "nodejs",
+    "express",
+    "react"
+  ],
+  "author": "",
+  "license": "ISC"
 }
